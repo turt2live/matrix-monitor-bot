@@ -1,3 +1,25 @@
+# The homeserver configuration for the bot. This is where the bot will connect to.
 homeserver:
+  # The URL to the client/server API. This is usually the same as specified in Riot/your client
   url: "https://t2bot.io"
+
+  # An access token to an existing account for the bot. The display name will get overwritten.
   accessToken: "Your_token_here"
+
+# The settings to control what and how the bot monitors
+monitor:
+  # The rooms to automatically try and join on startup. Each item in the list is a list of room
+  # aliases to try to ensure the bot gets into the room. This can allow, for example, the bot
+  # to join the room through the matrix.org alias if t2bot.io is down for some reason.
+  rooms:
+    - ["#monitor-public:t2bot.io", "#monitor-public:matrix.org"]
+
+  # If enabled, the bot will auto-accept invites to allow other people to measure latency with
+  # your server. If this is disabled (default), only the rooms listed in `rooms` above will
+  # be allowed to use the bot.
+  allowOtherRooms: false
+
+# Configuration for the bot's logging
+logging:
+  # The directory to store log files to. They will be rotated automatically every day.
+  directory: "logs"
