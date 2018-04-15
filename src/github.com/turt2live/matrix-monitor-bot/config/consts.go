@@ -12,6 +12,7 @@ const PingInterval = 30 * time.Second
 const MissedPingTimeout = 1 * time.Minute
 const PongTimeout = 1 * time.Minute
 const PingTtl = 10 * time.Minute
+const RealRttTolerance = 10 * time.Millisecond
 
 // Metrics:
 // [ bot ] --A-> [ matrix.org ] --B-> [ t2bot.io ] --C-> [ bot (G) ]

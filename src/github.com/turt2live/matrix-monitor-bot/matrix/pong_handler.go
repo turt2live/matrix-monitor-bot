@@ -9,6 +9,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/util"
 	"github.com/turt2live/matrix-monitor-bot/tracker"
 	"github.com/turt2live/matrix-monitor-bot/events"
+	"math"
 )
 
 func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
@@ -72,6 +73,21 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	pongDelay := time.Duration(util.NowMillis()-pong.GeneratedMs) * time.Millisecond
 	rtt := pingDelay + pongDelay
 
+	ourDomain, err := ExtractUserHomeserver(c.UserId)
+	if err != nil {
+		log.Error("Error parsing our own domain: ", err)
+		return
+	}
+	if pong.OriginalPing.SenderDomain == ourDomain {
+		realRtt := time.Duration(util.NowMillis()-pong.OriginalPing.GeneratedMs) * time.Millisecond
+		diffAbs := time.Duration(math.Abs(rtt.Seconds()-realRtt.Seconds())) * time.Second
+		if diffAbs >= config.RealRttTolerance {
+			log.Warn("Real RTT has a ", diffAbs, " difference. Using the expected value. Expected ", realRtt, " but got ", rtt)
+		}
+
+		rtt = realRtt
+	}
+
 	// TODO: Export pingDelay (metric ABC)
 	// TODO: Export pongDelay (metric DEF)
 	// TODO: Export rtt (metric ABCDEF - not G)
@@ -88,5 +104,4 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	// TODO: Detect out of order pongs
 	// TODO: Disregard obviously old pongs to prevent throwing off metrics from bots that are recovering
 	// TODO: Detect duplicate pongs
-	// TODO: Track our real RTT for pings we produce (in the event of clock problems on other servers)
 }
