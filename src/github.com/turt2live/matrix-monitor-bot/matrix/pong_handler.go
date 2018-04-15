@@ -7,10 +7,12 @@ import (
 	"time"
 	"github.com/turt2live/matrix-monitor-bot/config"
 	"github.com/turt2live/matrix-monitor-bot/util"
+	"github.com/turt2live/matrix-monitor-bot/tracker"
+	"github.com/turt2live/matrix-monitor-bot/events"
 )
 
 func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
-	pong := pongInfo{}
+	pong := events.PongInfo{}
 	pongAsStr, _ := json.Marshal(ev.Content["io.t2bot.monitor.pong"])
 	_ = json.Unmarshal(pongAsStr, &pong)
 
@@ -29,10 +31,16 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	}
 	log.Info("Pong received for ", pong.InReplyTo, " from ", domain)
 
-	// TODO: Verify that the original ping wasn't tampered with:
-	// * Event ID exists
-	// * Ping event has the same io.t2bot.monitor.ping content
-	// * Ping event is in the same room
+	ping, _, err := tracker.GetPingTracker().TryGetPing(pong.InReplyTo, ev.RoomID, pong.OriginalPing.SenderDomain)
+	if err != nil {
+		log.Error("Error looking up ping this pong is for: ", err)
+		return
+	}
+
+	if ping.GeneratedMs != pong.OriginalPing.GeneratedMs || ping.GeneratedNano != pong.OriginalPing.GeneratedNano || ping.Version != pong.OriginalPing.Version {
+		log.Error("Original ping this pong references has been tampered with. Expected: ", ping, "   Got: ", pong.OriginalPing)
+		return
+	}
 
 	remoteSendDelay := time.Duration(ev.Timestamp-pong.GeneratedMs) * time.Millisecond
 	if remoteSendDelay >= config.RemoteSendDelayThreshold || remoteSendDelay <= 0 {
@@ -70,7 +78,12 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 
 	log.Info("Ping delay (", remoteDomain, " -> ", domain, ") is ", pingDelay)
 	log.Info("Pong delay (", domain, " -> ", remoteDomain, ") is ", pongDelay)
-	log.Info("Round trip delay (", remoteDomain, " -> ", domain, " -> ", remoteDomain, ") is ", rtt)
+
+	if rtt >= config.RttWarningThreshold || rtt <= 0 {
+		log.Warn("Round trip delay (", remoteDomain, " -> ", domain, " -> ", remoteDomain, ") is ", rtt)
+	} else {
+		log.Info("Round trip delay (", remoteDomain, " -> ", domain, " -> ", remoteDomain, ") is ", rtt)
+	}
 
 	// TODO: Detect out of order pongs
 	// TODO: Disregard obviously old pongs to prevent throwing off metrics from bots that are recovering

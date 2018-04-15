@@ -5,10 +5,12 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 	"encoding/json"
+	"github.com/turt2live/matrix-monitor-bot/events"
+	"github.com/turt2live/matrix-monitor-bot/tracker"
 )
 
 type RoomPing struct {
-	Ping             pingInfo
+	Ping             events.PingInfo
 	EventId          string
 	ExpectingServers []string
 }
@@ -23,12 +25,12 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 		return nil, err
 	}
 
-	pingContent := &PingContent{
+	pingContent := &events.PingContent{
 		Msgtype:      "m.text",
 		Body:         "Ping from " + domain,
-		DisplayHints: displayHints{[][]string{{"io.t2bot.monitor.ping"}, {"m.text"}}},
-		TextBody:     textBody{"Ping from " + domain},
-		PingInfo:     pingInfo{}, // Generated in the loop below
+		DisplayHints: events.DisplayHints{Hints: [][]string{{"io.t2bot.monitor.ping"}, {"m.text"}}},
+		TextBody:     events.TextBody{Body: "Ping from " + domain},
+		PingInfo:     events.PingInfo{}, // Generated in the loop below
 	}
 
 	rooms, err := c.mxClient.JoinedRooms()
@@ -52,12 +54,13 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 		}
 
 		// Change the generated timestamps so we don't try to account for the delay in getting room members/joined rooms/etc
-		pingContent.PingInfo = pingInfo{
+		newPing := events.PingInfo{
 			Version:       1,
 			GeneratedMs:   util.NowMillis(),
 			GeneratedNano: util.NowNano(),
 			SenderDomain:  domain,
 		}
+		pingContent.PingInfo = newPing
 
 		logrus.Info("Expecting a reply from ", len(expectingReplyFrom), " servers in ", roomId, ": ", expectingReplyFrom)
 		evt, err := c.mxClient.SendMessageEvent(roomId, "m.room.message", pingContent)
@@ -67,8 +70,12 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 		}
 		logrus.Info("Ping in ", roomId, " is event ", evt.EventID)
 
+		err = tracker.GetPingTracker().StorePing(evt.EventID, roomId, newPing)
+		if err != nil {
+			logrus.Error("Error storing ping: ", err)
+		}
 		dispatchResults.Rooms[roomId] = RoomPing{
-			Ping:             pingContent.PingInfo,
+			Ping:             newPing,
 			EventId:          evt.EventID,
 			ExpectingServers: expectingReplyFrom,
 		}

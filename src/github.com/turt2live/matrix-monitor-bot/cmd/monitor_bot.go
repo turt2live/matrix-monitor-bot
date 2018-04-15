@@ -44,7 +44,7 @@ func main() {
 	}
 
 	logrus.Info("Starting ping producer")
-	producer := pinger.NewProducer(10*time.Second, client)
+	producer := pinger.NewProducer(config.PingInterval, client)
 	producer.Start()
 
 	logrus.Info("Starting sync")

@@ -7,66 +7,12 @@ import (
 	"time"
 	"github.com/turt2live/matrix-monitor-bot/config"
 	"github.com/turt2live/matrix-monitor-bot/util"
+	"github.com/turt2live/matrix-monitor-bot/events"
+	"github.com/turt2live/matrix-monitor-bot/tracker"
 )
 
-type pingInfo struct {
-	Version int `json:"version"`
-
-	// The timestamp we generated the ping at
-	GeneratedMs   int64 `json:"generated_ms"`
-	GeneratedNano int64 `json:"generated_nano"`
-
-	// The domain is provided for ease of troubleshooting pongs
-	SenderDomain string `json:"domain"`
-}
-
-type pongInfo struct {
-	Version int `json:"version"`
-
-	// The event we're responding to
-	InReplyTo string `json:"in_reply_to"`
-
-	// The timestamp when we received the ping
-	ReceivedMs   int64 `json:"received_ms"`
-	ReceivedNano int64 `json:"received_nano"`
-
-	// The timestamp we generated the pong at
-	// This is specified for clarity, despite the received timestamp usually being the same
-	GeneratedMs   int64 `json:"generated_ms"`
-	GeneratedNano int64 `json:"generated_nano"`
-
-	// The time it took to receive the event over federation
-	ReceiveDelayMs   int64 `json:"receive_delay_ms"`
-	ReceiveDelayNano int64 `json:"receive_delay_nano"`
-
-	OriginalPing pingInfo `json:"original_ping"`
-}
-
-type PingContent struct {
-	Msgtype      string       `json:"msgtype"`
-	Body         string       `json:"body"`
-	DisplayHints displayHints `json:"m.display_hints"`
-	TextBody     textBody     `json:"m.text"`
-
-	// This is the actual object we end up parsing ourselves. The rest of the stuff is so the event
-	// doesn't look too atrocious in Riot/clients.
-	PingInfo pingInfo `json:"io.t2bot.monitor.ping"`
-}
-
-type PongContent struct {
-	Msgtype      string       `json:"msgtype"`
-	Body         string       `json:"body"`
-	DisplayHints displayHints `json:"m.display_hints"`
-	TextBody     textBody     `json:"m.text"`
-	RelatesTo    relatesTo    `json:"m.relates_to"`
-
-	// This is the actual object we end up parsing ourselves. The rest of the stuff is so the event
-	// doesn't look too atrocious in Riot/clients.
-	PongInfo pongInfo `json:"io.t2bot.monitor.pong"`
-}
-
 func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
-	ping := pingInfo{}
+	ping := events.PingInfo{}
 	pingAsStr, _ := json.Marshal(ev.Content["io.t2bot.monitor.ping"])
 	_ = json.Unmarshal(pingAsStr, &ping)
 
@@ -90,6 +36,12 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 		return
 	}
 
+	err = tracker.GetPingTracker().StorePing(ev.ID, ev.RoomID, ping)
+	if err != nil {
+		logrus.Error("Error storing ping: ", err)
+		return
+	}
+
 	// Analyze the ping to see if the target server is having sending issues
 	remoteSendDelay := time.Duration(ev.Timestamp-ping.GeneratedMs) * time.Millisecond
 	if remoteSendDelay >= config.RemoteSendDelayThreshold || remoteSendDelay <= 0 {
@@ -108,13 +60,13 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 
 	// TODO: Export receiveDelay (metric BC)
 
-	response := &PongContent{
+	response := &events.PongContent{
 		Msgtype:      "m.text",
 		Body:         "Pong for " + ev.ID,
-		DisplayHints: displayHints{[][]string{{"io.t2bot.monitor.pong"}, {"m.text"}}},
-		RelatesTo:    relatesTo{replyTo{EventId: ev.ID}},
-		TextBody:     textBody{"Pong for " + ev.ID},
-		PongInfo: pongInfo{
+		DisplayHints: events.DisplayHints{Hints: [][]string{{"io.t2bot.monitor.pong"}, {"m.text"}}},
+		RelatesTo:    events.RelatesTo{InReplyTo: events.ReplyTo{EventId: ev.ID}},
+		TextBody:     events.TextBody{Body: "Pong for " + ev.ID},
+		PongInfo: events.PongInfo{
 			Version:          1,
 			InReplyTo:        ev.ID,
 			ReceivedMs:       util.NowMillis(),

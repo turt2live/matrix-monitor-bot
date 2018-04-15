@@ -8,6 +8,10 @@ const RemoteSendDelayThreshold = 1 * time.Second
 const ReceiveDelayThreshold = 5 * time.Second
 const RttWarningThreshold = 10 * time.Second
 const ProcessingDelayThreshold = 10 * time.Millisecond // This is pretty relaxed
+const PingInterval = 30 * time.Second
+const MissedPingTimeout = 1 * time.Minute
+const PongTimeout = 1 * time.Minute
+const PingTtl = 10 * time.Minute
 
 // Metrics:
 // [ bot ] --A-> [ matrix.org ] --B-> [ t2bot.io ] --C-> [ bot (G) ]

@@ -5,26 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Shared structs for message building
-// =====================================================
-type displayHints struct {
-	Hints [][]string `json:"display_hints"`
-}
-
-type textBody struct {
-	Body string `json:"body"`
-}
-
-type relatesTo struct {
-	InReplyTo replyTo `json:"m.in_reply_to"`
-}
-
-type replyTo struct {
-	EventId string `json:"event_id"`
-}
-
-// =====================================================
-
 func (c *Client) handleMessage(ev *gomatrix.Event) {
 	log := logrus.WithFields(logrus.Fields{
 		"sender":  ev.Sender,
