@@ -9,7 +9,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/matrix"
 	"math/rand"
 	"time"
-	"github.com/turt2live/matrix-monitor-bot/ping_producer"
+	"github.com/turt2live/matrix-monitor-bot/pinger"
 )
 
 func init() {
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	logrus.Info("Starting ping producer")
-	producer := ping_producer.NewProducer(10*time.Second, client)
+	producer := pinger.NewProducer(10*time.Second, client)
 	producer.Start()
 
 	logrus.Info("Starting sync")

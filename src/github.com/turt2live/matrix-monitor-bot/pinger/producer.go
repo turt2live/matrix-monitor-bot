@@ -1,4 +1,4 @@
-package ping_producer
+package pinger
 
 import (
 	"time"
@@ -32,7 +32,11 @@ func (p *Producer) Start() {
 			time.Sleep(jitter / 4)
 
 			logrus.Info("Dispatching the ping for ", now)
-			p.client.DispatchPing()
+			r, err := p.client.DispatchPing()
+			if err != nil {
+				logrus.Error("Error producing ping: ", err)
+			}
+			logrus.Info(r)
 		}
 	}()
 }

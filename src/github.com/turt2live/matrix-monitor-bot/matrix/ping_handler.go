@@ -17,7 +17,7 @@ type pingInfo struct {
 	GeneratedNano int64 `json:"generated_nano"`
 
 	// The domain is provided for ease of troubleshooting pongs
-	Domain string `json:"domain"`
+	SenderDomain string `json:"domain"`
 }
 
 type pongInfo struct {
@@ -85,8 +85,8 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 	}
 	log.Info("Ping received from ", domain)
 
-	if domain != ping.Domain {
-		log.Warn("Ping domain (", ping.Domain, ") does not match sender domain (", domain, "). Ignoring ping.")
+	if domain != ping.SenderDomain {
+		log.Warn("Ping domain (", ping.SenderDomain, ") does not match sender domain (", domain, "). Ignoring ping.")
 		return
 	}
 

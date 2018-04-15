@@ -58,7 +58,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 
 	// TODO: Export processingDelay (metric G)
 
-	remoteDomain := pong.OriginalPing.Domain
+	remoteDomain := pong.OriginalPing.SenderDomain
 
 	pingDelay := time.Duration(util.NowMillis()-pong.OriginalPing.GeneratedMs) * time.Millisecond
 	pongDelay := time.Duration(util.NowMillis()-pong.GeneratedMs) * time.Millisecond
