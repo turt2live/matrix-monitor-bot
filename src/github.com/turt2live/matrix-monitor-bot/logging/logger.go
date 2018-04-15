@@ -39,7 +39,7 @@ func Setup(dir string) error {
 	}
 	_ = os.MkdirAll(dir, os.ModePerm)
 
-	logFile := path.Join(dir, "media_repo.log")
+	logFile := path.Join(dir, "monitor_bot.log")
 	writer, err := rotatelogs.New(
 		logFile+".%Y%m%d%H%M",
 		rotatelogs.WithLinkName(logFile),
