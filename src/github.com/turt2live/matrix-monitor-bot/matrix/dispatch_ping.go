@@ -10,7 +10,7 @@ import (
 )
 
 type RoomPing struct {
-	Ping             events.PingInfo
+	Ping             *events.PingInfo
 	EventId          string
 	ExpectingServers []string
 }
@@ -23,14 +23,6 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 	domain, err := ExtractUserHomeserver(c.UserId)
 	if err != nil {
 		return nil, err
-	}
-
-	pingContent := &events.PingContent{
-		Msgtype:      "m.text",
-		Body:         "Ping from " + domain,
-		DisplayHints: events.DisplayHints{Hints: [][]string{{"io.t2bot.monitor.ping"}, {"m.text"}}},
-		TextBody:     events.TextBody{Body: "Ping from " + domain},
-		PingInfo:     events.PingInfo{}, // Generated in the loop below
 	}
 
 	rooms, err := c.mxClient.JoinedRooms()
@@ -53,29 +45,32 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 			continue
 		}
 
-		// Change the generated timestamps so we don't try to account for the delay in getting room members/joined rooms/etc
-		newPing := events.PingInfo{
-			Version:       1,
-			GeneratedMs:   util.NowMillis(),
-			GeneratedNano: util.NowNano(),
-			SenderDomain:  domain,
+		ping := events.PingContent{
+			Msgtype:      "m.text",
+			Body:         "Ping from " + domain,
+			DisplayHints: events.DisplayHints{Hints: [][]string{{"io.t2bot.monitor.ping"}, {"m.text"}}},
+			TextBody:     events.TextBody{Body: "Ping from " + domain},
+			PingInfo: events.PingInfo{
+				Version:       1,
+				GeneratedMs:   util.NowMillis(),
+				SenderDomain:  domain,
+			},
 		}
-		pingContent.PingInfo = newPing
 
 		logrus.Info("Expecting a reply from ", len(expectingReplyFrom), " servers in ", roomId, ": ", expectingReplyFrom)
-		evt, err := c.mxClient.SendMessageEvent(roomId, "m.room.message", pingContent)
+		evt, err := c.mxClient.SendMessageEvent(roomId, "m.room.message", ping)
 		if err != nil {
 			aggregateErr = multierror.Append(aggregateErr, err)
 			continue
 		}
 		logrus.Info("Ping in ", roomId, " is event ", evt.EventID)
 
-		err = tracker.GetPingTracker().StorePing(evt.EventID, roomId, newPing)
+		err = tracker.GetPingTracker().StorePing(evt.EventID, roomId, &ping.PingInfo)
 		if err != nil {
 			logrus.Error("Error storing ping: ", err)
 		}
 		dispatchResults.Rooms[roomId] = RoomPing{
-			Ping:             newPing,
+			Ping:             &ping.PingInfo,
 			EventId:          evt.EventID,
 			ExpectingServers: expectingReplyFrom,
 		}

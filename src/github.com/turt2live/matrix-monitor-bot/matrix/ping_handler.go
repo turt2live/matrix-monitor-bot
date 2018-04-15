@@ -36,7 +36,7 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 		return
 	}
 
-	err = tracker.GetPingTracker().StorePing(ev.ID, ev.RoomID, ping)
+	err = tracker.GetPingTracker().StorePing(ev.ID, ev.RoomID, &ping)
 	if err != nil {
 		logrus.Error("Error storing ping: ", err)
 		return
@@ -70,11 +70,8 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 			Version:          1,
 			InReplyTo:        ev.ID,
 			ReceivedMs:       util.NowMillis(),
-			ReceivedNano:     util.NowNano(),
 			GeneratedMs:      util.NowMillis(),
-			GeneratedNano:    util.NowNano(),
 			ReceiveDelayMs:   receiveDelay.Nanoseconds() / 1000000,
-			ReceiveDelayNano: receiveDelay.Nanoseconds(),
 			OriginalPing:     ping,
 		},
 	}

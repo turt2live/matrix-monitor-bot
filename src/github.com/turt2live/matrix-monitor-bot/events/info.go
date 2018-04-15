@@ -5,7 +5,6 @@ type PingInfo struct {
 
 	// The timestamp we generated the ping at
 	GeneratedMs   int64 `json:"generated_ms"`
-	GeneratedNano int64 `json:"generated_nano"`
 
 	// The domain is provided for ease of troubleshooting pongs
 	SenderDomain string `json:"domain"`
@@ -19,16 +18,13 @@ type PongInfo struct {
 
 	// The timestamp when we received the ping
 	ReceivedMs   int64 `json:"received_ms"`
-	ReceivedNano int64 `json:"received_nano"`
 
 	// The timestamp we generated the pong at
 	// This is specified for clarity, despite the received timestamp usually being the same
 	GeneratedMs   int64 `json:"generated_ms"`
-	GeneratedNano int64 `json:"generated_nano"`
 
-	// The time it took to receive the event over federation
+
 	ReceiveDelayMs   int64 `json:"receive_delay_ms"`
-	ReceiveDelayNano int64 `json:"receive_delay_nano"`
 
 	OriginalPing PingInfo `json:"original_ping"`
 }

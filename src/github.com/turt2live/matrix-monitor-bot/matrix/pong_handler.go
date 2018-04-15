@@ -38,7 +38,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 		return
 	}
 
-	if ping.GeneratedMs != pong.OriginalPing.GeneratedMs || ping.GeneratedNano != pong.OriginalPing.GeneratedNano || ping.Version != pong.OriginalPing.Version {
+	if ping.GeneratedMs != pong.OriginalPing.GeneratedMs || ping.Version != pong.OriginalPing.Version {
 		log.Error("Original ping this pong references has been tampered with. Expected: ", ping, "   Got: ", pong.OriginalPing)
 		return
 	}
