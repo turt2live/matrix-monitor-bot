@@ -1,0 +1,3 @@
+homeserver:
+  url: "https://t2bot.io"
+  accessToken: "Your_token_here"
