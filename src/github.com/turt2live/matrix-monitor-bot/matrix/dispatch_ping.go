@@ -65,6 +65,12 @@ func (c *Client) DispatchPing() (error) {
 				continue
 			}
 
+			// Just in case someone does something weird
+			if !info.IsBot {
+				logrus.Warn("User ", userId, " in ", roomId, " has a display name that is JSON and matches the format, but claims it is not a bot. Ignoring user.")
+				continue
+			}
+
 			domain, err := ExtractUserHomeserver(userId)
 			if err != nil {
 				logrus.Warn("Error determining domain for user ", userId, " in ", roomId, ": ", err)
