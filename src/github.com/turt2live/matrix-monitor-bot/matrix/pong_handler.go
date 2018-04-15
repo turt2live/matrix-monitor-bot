@@ -74,4 +74,6 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 
 	// TODO: Detect out of order pongs
 	// TODO: Disregard obviously old pongs to prevent throwing off metrics from bots that are recovering
+	// TODO: Detect duplicate pongs
+	// TODO: Track our real RTT for pings we produce (in the event of clock problems on other servers)
 }

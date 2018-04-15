@@ -7,7 +7,14 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/config"
 	"github.com/turt2live/matrix-monitor-bot/logging"
 	"github.com/turt2live/matrix-monitor-bot/matrix"
+	"math/rand"
+	"time"
+	"github.com/turt2live/matrix-monitor-bot/ping_producer"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func main() {
 	configPath := flag.String("config", "monitor-bot.yaml", "The path to the configuration")
@@ -35,6 +42,10 @@ func main() {
 			logrus.Fatal("Failed to join configured rooms: ", err)
 		}
 	}
+
+	logrus.Info("Starting ping producer")
+	producer := ping_producer.NewProducer(10*time.Second, client)
+	producer.Start()
 
 	logrus.Info("Starting sync")
 	client.StartSync()

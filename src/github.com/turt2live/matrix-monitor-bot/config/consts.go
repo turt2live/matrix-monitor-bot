@@ -7,7 +7,7 @@ import (
 const RemoteSendDelayThreshold = 1 * time.Second
 const ReceiveDelayThreshold = 5 * time.Second
 const RttWarningThreshold = 10 * time.Second
-const ProcessingDelayThreshold = 10*time.Millisecond // This is pretty relaxed
+const ProcessingDelayThreshold = 10 * time.Millisecond // This is pretty relaxed
 
 // Metrics:
 // [ bot ] --A-> [ matrix.org ] --B-> [ t2bot.io ] --C-> [ bot (G) ]
@@ -20,3 +20,7 @@ const ProcessingDelayThreshold = 10*time.Millisecond // This is pretty relaxed
 // E: Pong federation delay
 // F: Pong sync delay
 // G: The processing delay for a ping
+
+// TODO: Calculate and export time between pings
+// TODO: Detect missed pings (by threshold)
+// TODO: Detect missed pongs (by threshold)

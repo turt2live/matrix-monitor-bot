@@ -42,7 +42,18 @@ type pongInfo struct {
 	OriginalPing pingInfo `json:"original_ping"`
 }
 
-type ProbeResponseBody struct {
+type PingContent struct {
+	Msgtype      string       `json:"msgtype"`
+	Body         string       `json:"body"`
+	DisplayHints displayHints `json:"m.display_hints"`
+	TextBody     textBody     `json:"m.text"`
+
+	// This is the actual object we end up parsing ourselves. The rest of the stuff is so the event
+	// doesn't look too atrocious in Riot/clients.
+	PingInfo pingInfo `json:"io.t2bot.monitor.ping"`
+}
+
+type PongContent struct {
 	Msgtype      string       `json:"msgtype"`
 	Body         string       `json:"body"`
 	DisplayHints displayHints `json:"m.display_hints"`
@@ -97,7 +108,7 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 
 	// TODO: Export receiveDelay (metric BC)
 
-	response := &ProbeResponseBody{
+	response := &PongContent{
 		Msgtype:      "m.text",
 		Body:         "Pong for " + ev.ID,
 		DisplayHints: displayHints{[][]string{{"io.t2bot.monitor.pong"}, {"m.text"}}},

@@ -11,10 +11,6 @@ type StopRetry struct {
 	error
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 func Retry(attempts int, sleep time.Duration, f func() error) error {
 	if err := f(); err != nil {
 		if s, ok := err.(StopRetry); ok {
