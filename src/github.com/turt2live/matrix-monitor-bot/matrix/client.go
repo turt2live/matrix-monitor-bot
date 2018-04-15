@@ -56,6 +56,7 @@ func NewClient(csUrl string, accessToken string) (*Client, error) {
 		Domain:        server,
 	}
 
+	// TODO: use extensible profiles instead of the display name when that is a thing
 	b, _ := json.Marshal(client.info)
 	botInfoStr := string(b)
 	client.infoStr = botInfoStr
@@ -90,5 +91,6 @@ func (c *Client) JoinRoomByAliases(aliases []string) (error) {
 func (c *Client) StartSync() (error) {
 	syncer := c.mxClient.Syncer.(*gomatrix.DefaultSyncer)
 	syncer.OnEventType("m.room.member", c.handleMembership)
+	syncer.OnEventType("m.room.message", c.handleMessage)
 	return c.mxClient.Sync()
 }

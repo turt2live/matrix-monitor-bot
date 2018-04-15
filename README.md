@@ -36,3 +36,13 @@ The steps are almost the same as above. The only difference is that `gb build` w
 ```bash
 go build -o bin/monitor_bot ./src/github.com/turt2live/matrix-monitor-bot/cmd/monitor_bot/
 ```
+
+# Architecture
+
+TODO: This section
+* How the bot measures things
+* What the Prometheus metrics are
+* Why the bot uses m.room.message and not a custom event
+* Why the bot uses messages for pongs instead of read receipts
+* Why the display name gets overwritten and how it is used
+* Why someone should run this on their server
