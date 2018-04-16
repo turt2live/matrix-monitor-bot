@@ -36,6 +36,7 @@ func NewClient(csUrl string, accessToken string) (*Client, error) {
 
 	client.mxClient = mxClient
 
+	logrus.Info("Querying for user ID")
 	resp := &WhoAmIResponse{}
 	url := mxClient.BuildURL("/account/whoami")
 	_, err = mxClient.MakeRequest("GET", url, nil, resp)
@@ -59,6 +60,7 @@ func NewClient(csUrl string, accessToken string) (*Client, error) {
 	}
 
 	// TODO: use extensible profiles instead of the display name when that is a thing
+	logrus.Info("Updating display name")
 	b, _ := json.Marshal(client.info)
 	botInfoStr := string(b)
 	client.infoStr = botInfoStr
