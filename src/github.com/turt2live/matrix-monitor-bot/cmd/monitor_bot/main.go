@@ -22,9 +22,11 @@ func init() {
 
 func main() {
 	configPath := flag.String("config", "monitor-bot.yaml", "The path to the configuration")
+	webContentPath := flag.String("web", "./web", "The path to the webserver content")
 	flag.Parse()
 
 	config.Path = *configPath
+	config.Runtime.WebContentDir = *webContentPath
 
 	err := logging.Setup(config.Get().Logging.Directory)
 	if err != nil {
@@ -54,7 +56,7 @@ func main() {
 			metrics.InitServer(mux)
 
 			if config.Get().Webserver.WithClient {
-				webserver.InitServer(mux)
+				webserver.InitServer(mux, client)
 			}
 
 			address := fmt.Sprintf("%s:%d", config.Get().Webserver.Bind, config.Get().Webserver.Port)
@@ -75,7 +77,7 @@ func main() {
 		if config.Get().Webserver.WithClient {
 			go func() {
 				mux := http.NewServeMux()
-				webserver.InitServer(mux)
+				webserver.InitServer(mux, client)
 				address := fmt.Sprintf("%s:%d", config.Get().Webserver.Bind, config.Get().Webserver.Port)
 				logrus.Info("Webserver listening on ", address)
 				logrus.Fatal(http.ListenAndServe(address, mux))

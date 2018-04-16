@@ -2,15 +2,67 @@ package webserver
 
 import (
 	"net/http"
-	"io"
+	"github.com/turt2live/matrix-monitor-bot/config"
+	"html/template"
+	"github.com/sirupsen/logrus"
+	"path"
+	"github.com/turt2live/matrix-monitor-bot/matrix"
+	"fmt"
+	"github.com/turt2live/matrix-monitor-bot/metrics"
 )
 
-func InitServer(mux *http.ServeMux) {
-	mux.Handle("/", &tempHandler{})
+type ComparedDomain struct {
+	Domain      string
+	SendTime    string
+	ReceiveTime string
 }
 
-type tempHandler struct{}
+type CompareTemplateFields struct {
+	SelfDomain string
+	Domains    []ComparedDomain
+}
 
-func (tempHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello world")
+var mxClient *matrix.Client
+
+func InitServer(mux *http.ServeMux, client *matrix.Client) {
+	mxClient = client
+
+	fs := http.FileServer(http.Dir(config.Runtime.WebContentDir))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	mux.HandleFunc("/", serveCompare)
+}
+
+func serveCompare(w http.ResponseWriter, r *http.Request) {
+	layout := path.Join(config.Runtime.WebContentDir, "layout.html")
+	file := path.Join(config.Runtime.WebContentDir, "compare.html")
+
+	fields := CompareTemplateFields{
+		SelfDomain: config.Get().Webserver.DefaultCompareDomain,
+		Domains:    make([]ComparedDomain, 0),
+	}
+
+	if fields.SelfDomain == "" {
+		fields.SelfDomain = mxClient.Domain
+	}
+
+	for _, domain := range config.Get().Webserver.DefaultCompareToDomains {
+		fields.Domains = append(fields.Domains, ComparedDomain{
+			Domain:      domain,
+			SendTime:    fmt.Sprint(metrics.CalculateSendTime(fields.SelfDomain, domain)),
+			ReceiveTime: fmt.Sprint(metrics.CalculateSendTime(domain, fields.SelfDomain)),
+		})
+	}
+
+	tmpl, err := template.ParseFiles(layout, file)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.ExecuteTemplate(w, "layout", &fields)
+	if err != nil {
+		logrus.Error(err)
+	}
 }

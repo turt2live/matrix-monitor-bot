@@ -1,0 +1,25 @@
+body {
+    text-align: center;
+}
+
+table {
+    display: inline-block;
+    border: none;
+    border-collapse: collapse;
+}
+
+table thead tr {
+    background-color: #bbb;
+}
+
+table thead tr th, table tbody tr td {
+    padding: 10px;
+}
+
+table tbody tr:nth-child(2n) {
+    background-color: #eee;
+}
+
+.help {
+    font-size: 12px;
+}

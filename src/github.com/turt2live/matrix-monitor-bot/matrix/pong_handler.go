@@ -83,6 +83,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	metrics.RecordPingTime(remoteDomain, domain, pingDelay)
 	metrics.RecordPongTime(remoteDomain, domain, pongDelay)
 	metrics.RecordRtt(remoteDomain, domain, rtt)
+	metrics.RecordSendTime(remoteDomain, domain, pingDelay, ev.ID)
 
 	log.Info("Ping delay (", remoteDomain, " -> ", domain, ") is ", pingDelay)
 	log.Info("Pong delay (", domain, " -> ", remoteDomain, ") is ", pongDelay)

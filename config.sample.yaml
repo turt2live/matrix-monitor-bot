@@ -43,6 +43,14 @@ webserver:
   # The port to listen on. If you're using Docker, make sure to change your port mapping
   port: 8080
 
+  # The default domain to use when presenting a compare page. For example, this is the domain
+  # that will be advertised on the home page.
+  #defaultCompareDomain: "t2bot.io"
+
+  # The domains to compare against the requested domain by default
+  compareDefaultDomains:
+    - "matrix.org"
+    - "t2bot.io"
 
 # Configuration for the bot's logging
 logging:

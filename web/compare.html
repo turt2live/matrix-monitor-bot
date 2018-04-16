@@ -1,0 +1,37 @@
+{{define "title"}}Matrix Latency: {{.SelfDomain}}{{end}}
+
+{{define "body"}}
+<h1>{{.SelfDomain}}</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Homeserver</th>
+        <th>Send</th>
+        <th>Receive</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range .Domains}}
+    <tr>
+        <td>{{.Domain}}</td>
+
+    {{if eq .SendTime "-1ns"}}
+        <td>N / A</td>
+    {{else}}
+        <td>{{.SendTime}}</td>
+    {{end}}
+
+    {{if eq .ReceiveTime "-1ns"}}
+        <td>N / A</td>
+    {{else}}
+        <td>{{.ReceiveTime}}</td>
+    {{end}}
+    </tr>
+    {{end}}
+    </tbody>
+</table>
+<p class="help">
+    Send = Time to go from {{.SelfDomain}} to the listed homeserver<br/>
+    Receive = Time to go from the listed homeserver to {{.SelfDomain}}
+</p>
+{{end}}

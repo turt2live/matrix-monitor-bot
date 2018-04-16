@@ -10,6 +10,7 @@ import (
 )
 
 type runtimeConfig struct {
+	WebContentDir string
 }
 
 var Runtime = &runtimeConfig{}
@@ -25,15 +26,17 @@ type MonitorConfig struct {
 }
 
 type MetricsConfig struct {
-	Enabled    bool   `yaml:"enabled"`
-	Bind       string `yaml:"bind"`
-	Port       int    `yaml:"port"`
+	Enabled bool   `yaml:"enabled"`
+	Bind    string `yaml:"bind"`
+	Port    int    `yaml:"port"`
 }
 
 type WebserverConfig struct {
-	WithClient bool   `yaml:"serveClient"`
-	Bind       string `yaml:"bind"`
-	Port       int    `yaml:"port"`
+	WithClient              bool     `yaml:"serveClient"`
+	Bind                    string   `yaml:"bind"`
+	Port                    int      `yaml:"port"`
+	DefaultCompareDomain    string   `yaml:"defaultCompareDomain"`
+	DefaultCompareToDomains []string `yaml:"compareDefaultDomains,flow"`
 }
 
 type LoggingConfig struct {
@@ -119,14 +122,16 @@ func NewDefaultConfig() *BotConfig {
 			Rooms: [][]string{{"#monitor-public:t2bot.io", "#monitor-public:matrix.org"}},
 		},
 		Metrics: &MetricsConfig{
-			Enabled:    false,
-			Bind:       "127.0.0.1",
-			Port:       9000,
+			Enabled: false,
+			Bind:    "127.0.0.1",
+			Port:    9000,
 		},
 		Webserver: &WebserverConfig{
-			WithClient: true,
-			Bind:       "0.0.0.0",
-			Port:       8080,
+			WithClient:              true,
+			Bind:                    "0.0.0.0",
+			Port:                    8080,
+			DefaultCompareDomain:    "",
+			DefaultCompareToDomains: []string{"matrix.org", "t2bot.io"},
 		},
 		Logging: &LoggingConfig{
 			Directory: "logs",
