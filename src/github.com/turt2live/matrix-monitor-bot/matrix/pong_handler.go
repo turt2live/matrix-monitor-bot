@@ -69,8 +69,9 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 
 	remoteDomain := pong.OriginalPing.SenderDomain
 
-	pingDelay := time.Duration(util.NowMillis()-pong.OriginalPing.GeneratedMs) * time.Millisecond
-	pongDelay := time.Duration(util.NowMillis()-pong.GeneratedMs) * time.Millisecond
+	pingDelay := time.Duration(math.Abs(float64(pong.ReceivedMs)-float64(pong.OriginalPing.GeneratedMs))) * time.Millisecond
+	pongDelay := time.Duration(math.Abs(float64(util.NowMillis())-float64(pong.GeneratedMs))) * time.Millisecond
+	realRtt := time.Duration(math.Abs(float64(util.NowMillis())-float64(pong.OriginalPing.GeneratedMs))) * time.Millisecond
 	rtt := pingDelay + pongDelay
 
 	ourDomain, err := ExtractUserHomeserver(c.UserId)
@@ -79,7 +80,6 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 		return
 	}
 	if pong.OriginalPing.SenderDomain == ourDomain {
-		realRtt := time.Duration(util.NowMillis()-pong.OriginalPing.GeneratedMs) * time.Millisecond
 		diffAbs := time.Duration(math.Abs(rtt.Seconds()-realRtt.Seconds())) * time.Second
 		if diffAbs >= config.RealRttTolerance {
 			log.Warn("Real RTT has a ", diffAbs, " difference. Using the expected value. Expected ", realRtt, " but got ", rtt)
