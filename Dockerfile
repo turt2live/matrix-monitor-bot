@@ -12,7 +12,7 @@ RUN apk add --no-cache \
  && cd /tmp/src \
  && GOPATH=`pwd` go get github.com/constabulary/gb/... \
  && PATH=$PATH:`pwd`/bin gb vendor restore \
- && GOPATH=`pwd`:`pwd`/vendor go build -o bin/monitor_bot ./src/github.com/turt2live/matrix-monitor-bot/cmd/ \
+ && GOPATH=`pwd`:`pwd`/vendor go build -o bin/monitor_bot ./src/github.com/turt2live/matrix-monitor-bot/cmd/monitor_bot/ \
  && cp bin/monitor_bot .docker/run.sh /usr/local/bin \
  && cp config.sample.yaml /etc/monitor-bot.yaml.sample \
  && dos2unix /etc/monitor-bot.yaml.sample \
