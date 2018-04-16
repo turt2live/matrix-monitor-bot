@@ -61,8 +61,8 @@ docker run -p 8080:8080 -v /path/to/matrix-monitor-bot:/data matrix-monitor-bot
 # Prometheus Metrics
 
 If metrics are enabled in your config, matrix-monitor-bot will serve up metrics for scraping by Prometheus. Every metric
-that is exported is a [Summary](https://prometheus.io/docs/concepts/metric_types/#summary) metric. The following metrics
-are exported:
+that is exported is a [Histogram](https://prometheus.io/docs/concepts/metric_types/#histogram) metric. The following
+metrics are exported:
 
 * `monbot_ping_send_delay_seconds` - Number of seconds for the origin to send a ping to their homeserver
 * `monbot_ping_receive_delay_seconds` - Number of seconds for a bot to receive a ping

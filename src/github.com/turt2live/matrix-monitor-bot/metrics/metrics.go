@@ -21,14 +21,14 @@ const namespace = "monbot"
 // F: Pong sync delay
 // G: The processing delay for a ping
 
-var pingSendDelay *prometheus.SummaryVec    // Metric A
-var pingReceiveDelay *prometheus.SummaryVec // Metric BC
-var pingProcessDelay *prometheus.SummaryVec // Metric G
-var pongSendDelay *prometheus.SummaryVec    // Metric D
-var pongReceiveDelay *prometheus.SummaryVec // Metric EF
-var pingTime *prometheus.SummaryVec         // Metric ABC
-var pongTime *prometheus.SummaryVec         // Metric DEF
-var rtt *prometheus.SummaryVec              // Metric ABCDEF (no G)
+var pingSendDelay *prometheus.HistogramVec    // Metric A
+var pingReceiveDelay *prometheus.HistogramVec // Metric BC
+var pingProcessDelay *prometheus.HistogramVec // Metric G
+var pongSendDelay *prometheus.HistogramVec    // Metric D
+var pongReceiveDelay *prometheus.HistogramVec // Metric EF
+var pingTime *prometheus.HistogramVec         // Metric ABC
+var pongTime *prometheus.HistogramVec         // Metric DEF
+var rtt *prometheus.HistogramVec              // Metric ABCDEF (no G)
 
 // TODO: Calculate and export time between pings
 // TODO: Detect and export missed pings (by threshold)
@@ -37,56 +37,56 @@ var rtt *prometheus.SummaryVec              // Metric ABCDEF (no G)
 func initMetrics() {
 	logrus.Info("Creating metrics...")
 
-	pingSendDelay = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pingSendDelay = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "ping_send_delay_seconds",
 		Help:      "Number of seconds for the origin to send a ping to their homeserver",
 		Namespace: namespace,
 	}, []string{"sourceDomain"})
 	prometheus.MustRegister(pingSendDelay)
 
-	pingReceiveDelay = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pingReceiveDelay = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "ping_receive_delay_seconds",
 		Help:      "Number of seconds for a bot to receive a ping",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pingReceiveDelay)
 
-	pingProcessDelay = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pingProcessDelay = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "ping_process_delay_seconds",
 		Help:      "Number of seconds for a bot to process a ping event",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pingProcessDelay)
 
-	pongSendDelay = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pongSendDelay = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "pong_send_delay_seconds",
 		Help:      "Number of seconds for the origin to send a pong in response to a ping to their homeserver",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pongSendDelay)
 
-	pongReceiveDelay = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pongReceiveDelay = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "pong_receive_delay_seconds",
 		Help:      "Number of seconds for a bot to receive a pong",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pongReceiveDelay)
 
-	pingTime = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pingTime = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "ping_time_seconds",
 		Help:      "Total number of seconds a ping lasts",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pingTime)
 
-	pongTime = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	pongTime = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "pong_time_seconds",
 		Help:      "Total number of seconds a pong lasts",
 		Namespace: namespace,
 	}, []string{"sourceDomain", "receivingDomain"})
 	prometheus.MustRegister(pongTime)
 
-	rtt = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	rtt = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "rtt_seconds",
 		Help:      "Total number of seconds for a given ping/pong sequence",
 		Namespace: namespace,
