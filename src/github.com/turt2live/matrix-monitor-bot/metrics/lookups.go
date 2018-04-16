@@ -4,6 +4,7 @@ import (
 	"time"
 	"sync"
 	"github.com/patrickmn/go-cache"
+	"strings"
 )
 
 var sendTimesMap = &sync.Map{} // domain_key: Cache
@@ -40,4 +41,31 @@ func RecordSendTime(fromDomain string, toDomain string, duration time.Duration, 
 
 	c := i.(*cache.Cache)
 	c.Set(id, duration, cache.DefaultExpiration)
+}
+
+func ListDomainsWithSendTimes(exceptDomain string) []string {
+	domains := make(map[string]struct{})
+
+	sendTimesMap.Range(func(key interface{}, value interface{}) bool {
+		domainKey := key.(string)
+		i := strings.Index(domainKey, " TO ")
+		domainA := domainKey[:i]
+		domainB := domainKey[i+len(" TO "):]
+
+		if _, ok := domains[domainA]; !ok && domainA != exceptDomain {
+			domains[domainA] = struct{}{}
+		}
+		if _, ok := domains[domainB]; !ok && domainB != exceptDomain {
+			domains[domainB] = struct{}{}
+		}
+
+		return true // more elements please
+	})
+
+	domainList := make([]string, 0, len(domains))
+	for k := range domains {
+		domainList = append(domainList, k)
+	}
+
+	return domainList
 }

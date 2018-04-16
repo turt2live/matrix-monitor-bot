@@ -46,7 +46,12 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		fields.SelfDomain = mxClient.Domain
 	}
 
-	for _, domain := range config.Get().Webserver.DefaultCompareToDomains {
+	domainsToUse := config.Get().Webserver.DefaultCompareToDomains
+	if len(domainsToUse) == 0 {
+		domainsToUse = metrics.ListDomainsWithSendTimes(mxClient.Domain)
+	}
+
+	for _, domain := range domainsToUse {
 		fields.Domains = append(fields.Domains, ComparedDomain{
 			Domain:      domain,
 			SendTime:    fmt.Sprint(metrics.CalculateSendTime(fields.SelfDomain, domain)),

@@ -47,10 +47,9 @@ webserver:
   # that will be advertised on the home page.
   #defaultCompareDomain: "t2bot.io"
 
-  # The domains to compare against the requested domain by default
-  compareDefaultDomains:
-    - "matrix.org"
-    - "t2bot.io"
+  # The domains to compare against the requested domain by default. If this list is empty, all
+  # domains for which stats are available will be used as the default.
+  compareDefaultDomains: ["matrix.org", "t2bot.io"]
 
 # Configuration for the bot's logging
 logging:
