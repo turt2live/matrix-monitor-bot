@@ -22,6 +22,6 @@ RUN apk add --no-cache \
  && rm -rf /tmp/* \
  && apk del build-deps
 
-CMD /usr/local/bin/run.sh
+CMD exec /usr/local/bin/run.sh
 VOLUME ["/data"]
 EXPOSE 8080
