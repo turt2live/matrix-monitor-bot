@@ -4,6 +4,7 @@
 /logs
 
 monitor-bot*.yaml
+.env
 
 vendor/pkg
 vendor/src

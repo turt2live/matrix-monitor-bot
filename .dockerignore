@@ -1,0 +1,11 @@
+.git
+.vscode
+.idea
+.travis.yml
+monitor-bot*.yaml
+logs/
+pkg/
+bin/
+vendor/pkg
+vendor/src
+vendor/bin

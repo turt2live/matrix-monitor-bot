@@ -37,6 +37,27 @@ The steps are almost the same as above. The only difference is that `gb build` w
 go build -o bin/monitor_bot ./src/github.com/turt2live/matrix-monitor-bot/cmd/monitor_bot/
 ```
 
+# Docker
+
+`/path/to/matrix-monitor-bot` should always be pointed to a folder that has your `monitor-bot.yaml` file in it. If the config
+file does not exist, one will be created for you (and promptly not work because it doesn't have a valid config). A folder
+named `logs` will also be created here (assuming you use the default configuration).
+
+
+**From Docker Hub:**
+```
+docker run -p 8080:8080 -v /path/to/matrix-monitor-bot:/data turt2live/matrix-monitor-bot
+```
+
+
+**Build the image yourself:**
+```
+git clone https://github.com/turt2live/matrix-monitor-bot
+cd matrix-monitor-bot
+docker build -t matrix-monitor-bot .
+docker run -p 8080:8080 -v /path/to/matrix-monitor-bot:/data matrix-monitor-bot
+```
+
 # Architecture
 
 TODO: This section
