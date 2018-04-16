@@ -17,6 +17,7 @@ RUN apk add --no-cache \
  && cp config.sample.yaml /etc/monitor-bot.yaml.sample \
  && dos2unix /etc/monitor-bot.yaml.sample \
  && dos2unix /usr/local/bin/run.sh \
+ && chmod a+x /usr/local/bin/run.sh \
  && cd / \
  && rm -rf /tmp/* \
  && apk del build-deps
