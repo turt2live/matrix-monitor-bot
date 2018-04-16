@@ -60,13 +60,20 @@ func NewClient(csUrl string, accessToken string) (*Client, error) {
 	}
 
 	// TODO: use extensible profiles instead of the display name when that is a thing
-	logrus.Info("Updating display name")
 	b, _ := json.Marshal(client.info)
 	botInfoStr := string(b)
 	client.infoStr = botInfoStr
-	err = mxClient.SetDisplayName(botInfoStr)
+	logrus.Info("Getting current display name")
+	name, err := mxClient.GetOwnDisplayName()
 	if err != nil {
 		return nil, err
+	}
+	if name.DisplayName != string(botInfoStr) {
+		logrus.Info("Updating display name")
+		err = mxClient.SetDisplayName(botInfoStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return client, nil
