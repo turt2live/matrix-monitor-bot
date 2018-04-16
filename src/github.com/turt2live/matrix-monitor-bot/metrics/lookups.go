@@ -23,6 +23,10 @@ func CalculateSendTime(fromDomain string, toDomain string) (time.Duration) {
 		s += (v.Object).(time.Duration)
 	}
 
+	if n == 0 {
+		n = 1
+	}
+
 	return time.Duration(s.Nanoseconds()/n) * time.Nanosecond
 }
 
