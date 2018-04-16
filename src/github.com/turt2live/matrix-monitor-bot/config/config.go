@@ -24,6 +24,20 @@ type MonitorConfig struct {
 	AllowOtherRooms bool       `yaml:"allowOtherRooms"`
 }
 
+type MetricsConfig struct {
+	Enabled    bool   `yaml:"enabled"`
+	Bind       string `yaml:"bind"`
+	Port       int    `yaml:"port"`
+	XForwarded bool   `yaml:"xForwarded"`
+}
+
+type WebserverConfig struct {
+	WithClient bool   `yaml:"serveClient"`
+	Bind       string `yaml:"bind"`
+	Port       int    `yaml:"port"`
+	XForwarded bool   `yaml:"xForwarded"`
+}
+
 type LoggingConfig struct {
 	Directory string `yaml:"directory"`
 }
@@ -31,6 +45,8 @@ type LoggingConfig struct {
 type BotConfig struct {
 	Homeserver *HomeserverConfig `yaml:"homeserver"`
 	Monitor    *MonitorConfig    `yaml:"monitor"`
+	Metrics    *MetricsConfig    `yaml:"metrics"`
+	Webserver  *WebserverConfig  `yaml:"webserver"`
 	Logging    *LoggingConfig    `yaml:"logging"`
 }
 
@@ -103,6 +119,18 @@ func NewDefaultConfig() *BotConfig {
 		},
 		Monitor: &MonitorConfig{
 			Rooms: [][]string{{"#monitor-public:t2bot.io", "#monitor-public:matrix.org"}},
+		},
+		Metrics: &MetricsConfig{
+			Enabled:    false,
+			Bind:       "127.0.0.1",
+			Port:       9000,
+			XForwarded: false,
+		},
+		Webserver: &WebserverConfig{
+			WithClient: true,
+			Bind:       "0.0.0.0",
+			Port:       8080,
+			XForwarded: false,
 		},
 		Logging: &LoggingConfig{
 			Directory: "logs",

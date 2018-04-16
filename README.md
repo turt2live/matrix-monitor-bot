@@ -58,6 +58,39 @@ docker build -t matrix-monitor-bot .
 docker run -p 8080:8080 -v /path/to/matrix-monitor-bot:/data matrix-monitor-bot
 ```
 
+# Prometheus Metrics
+
+If metrics are enabled in your config, matrix-monitor-bot will serve up metrics for scraping by Prometheus. Every metric
+that is exported is a [Summary](https://prometheus.io/docs/concepts/metric_types/#summary) metric. The following metrics
+are exported:
+
+* `monbot_ping_send_delay_seconds` - Number of seconds for the origin to send a ping to their homeserver
+* `monbot_ping_receive_delay_seconds` - Number of seconds for a bot to receive a ping
+* `monbot_ping_process_delay_seconds` - Number of seconds for a bot to process a ping event
+* `monbot_pong_send_delay_seconds` - Number of seconds for the origin to send a pong in response to a ping to their homeserver
+* `monbot_pong_receive_delay_seconds` - Number of seconds for a bot to receive a pong
+* `monbot_ping_time_seconds` - Total number of seconds a ping lasts
+* `monbot_pong_time_seconds` - Total number of seconds a pong lasts
+* `monbot_rtt_seconds` - Total number of seconds for a given ping/pong sequence
+
+### Example queries
+
+**Average round trip time between two servers (t2bot.io -> matrix.org in this case)**
+```
+rate(monbot_rtt_seconds_sum{sourceDomain="t2bot.io",receivingDomain="matrix.org"}[2m]) / rate(monbot_rtt_seconds_count{sourceDomain="t2bot.io",receivingDomain="matrix.org"}[2m])
+```
+
+**Average time it takes a particular server to send a ping:**
+```
+rate(monbot_ping_send_delay_seconds_sum{sourceDomain="t2bot.io"}[2m]) / rate(monbot_ping_send_delay_seconds_count{sourceDomain="t2bot.io"}[2m])
+```
+
+**Average time it takes for a particular server to receive a ping:**
+```
+rate(monbot_ping_time_seconds_sum{receivingDomain="t2bot.io"}[2m]) / rate(monbot_ping_time_seconds_count{receivingDomain="t2bot.io"}[2m])
+```
+
+
 # Architecture
 
 TODO: This section

@@ -9,6 +9,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/util"
 	"github.com/turt2live/matrix-monitor-bot/events"
 	"github.com/turt2live/matrix-monitor-bot/tracker"
+	"github.com/turt2live/matrix-monitor-bot/metrics"
 )
 
 func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
@@ -44,6 +45,7 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 
 	// Analyze the ping to see if the target server is having sending issues
 	remoteSendDelay := time.Duration(ev.Timestamp-ping.GeneratedMs) * time.Millisecond
+	metrics.RecordPingSendDelay(domain, remoteSendDelay)
 	if remoteSendDelay >= config.RemoteSendDelayThreshold || remoteSendDelay <= 0 {
 		log.Warn(domain, " has a ", remoteSendDelay, " delay in sending events (origin_server_ts vs generated_ms) on ping")
 	}
@@ -51,14 +53,11 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 		remoteSendDelay = 0 // For sanity, even though it's not supposed to be possible
 	}
 
-	// TODO: Export remoteSendDelay (metric A)
-
 	receiveDelay := (time.Duration(util.NowMillis()-ping.GeneratedMs) * time.Millisecond) - remoteSendDelay
+	metrics.RecordPingReceiveDelay(domain, c.Domain, receiveDelay)
 	if receiveDelay >= config.ReceiveDelayThreshold || receiveDelay <= 0 {
 		log.Warn("Ping received from ", domain, " has a receive delay of ", receiveDelay)
 	}
-
-	// TODO: Export receiveDelay (metric BC)
 
 	response := &events.PongContent{
 		Msgtype:      "m.text",
@@ -67,12 +66,12 @@ func (c *Client) handlePing(log *logrus.Entry, ev *gomatrix.Event) {
 		RelatesTo:    events.RelatesTo{InReplyTo: events.ReplyTo{EventId: ev.ID}},
 		TextBody:     events.TextBody{Body: "Pong for " + ev.ID},
 		PongInfo: events.PongInfo{
-			Version:          1,
-			InReplyTo:        ev.ID,
-			ReceivedMs:       util.NowMillis(),
-			GeneratedMs:      util.NowMillis(),
-			ReceiveDelayMs:   receiveDelay.Nanoseconds() / 1000000,
-			OriginalPing:     ping,
+			Version:        1,
+			InReplyTo:      ev.ID,
+			ReceivedMs:     util.NowMillis(),
+			GeneratedMs:    util.NowMillis(),
+			ReceiveDelayMs: receiveDelay.Nanoseconds() / 1000000,
+			OriginalPing:   ping,
 		},
 	}
 

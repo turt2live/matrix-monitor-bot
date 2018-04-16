@@ -10,6 +10,10 @@ import (
 	"math/rand"
 	"time"
 	"github.com/turt2live/matrix-monitor-bot/pinger"
+	"net/http"
+	"github.com/turt2live/matrix-monitor-bot/metrics"
+	"github.com/turt2live/matrix-monitor-bot/webserver"
+	"fmt"
 )
 
 func init() {
@@ -40,6 +44,42 @@ func main() {
 		err = client.JoinRoomByAliases(aliases)
 		if err != nil {
 			logrus.Fatal("Failed to join configured rooms: ", err)
+		}
+	}
+
+	// Prepare the webservers
+	if config.Get().Metrics.Port == config.Get().Webserver.Port && config.Get().Metrics.Enabled {
+		go func() {
+			mux := http.NewServeMux()
+			metrics.InitServer(mux)
+
+			if config.Get().Webserver.WithClient {
+				webserver.InitServer(mux)
+			}
+
+			address := fmt.Sprintf("%s:%d", config.Get().Webserver.Bind, config.Get().Webserver.Port)
+			logrus.Info("Webserver and metrics listening on ", address)
+			logrus.Fatal(http.ListenAndServe(address, mux))
+		}()
+	} else {
+		if config.Get().Metrics.Enabled {
+			go func() {
+				mux := http.NewServeMux()
+				metrics.InitServer(mux)
+				address := fmt.Sprintf("%s:%d", config.Get().Metrics.Bind, config.Get().Metrics.Port)
+				logrus.Info("Metrics listening on ", address)
+				logrus.Fatal(http.ListenAndServe(address, mux))
+			}()
+		}
+
+		if config.Get().Webserver.WithClient {
+			go func() {
+				mux := http.NewServeMux()
+				webserver.InitServer(mux)
+				address := fmt.Sprintf("%s:%d", config.Get().Webserver.Bind, config.Get().Webserver.Port)
+				logrus.Info("Webserver listening on ", address)
+				logrus.Fatal(http.ListenAndServe(address, mux))
+			}()
 		}
 	}
 

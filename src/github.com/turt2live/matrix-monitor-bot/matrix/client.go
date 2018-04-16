@@ -15,6 +15,7 @@ type Client struct {
 	joinedRoomIds []string
 
 	UserId            string // readonly
+	Domain            string // readonly
 	AutoAcceptInvites bool
 }
 
@@ -50,6 +51,7 @@ func NewClient(csUrl string, accessToken string) (*Client, error) {
 		return nil, err
 	}
 
+	client.Domain = server
 	client.info = &BotInfo{
 		FormatVersion: 1,
 		IsBot:         true, // obviously

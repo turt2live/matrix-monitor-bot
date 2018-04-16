@@ -10,6 +10,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/tracker"
 	"github.com/turt2live/matrix-monitor-bot/events"
 	"math"
+	"github.com/turt2live/matrix-monitor-bot/metrics"
 )
 
 func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
@@ -25,6 +26,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 		return
 	}
 
+	remoteDomain := pong.OriginalPing.SenderDomain
 	domain, err := ExtractUserHomeserver(ev.Sender)
 	if err != nil {
 		log.Error("Error parsing domain from which we received a pong: ", err)
@@ -32,7 +34,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	}
 	log.Info("Pong received for ", pong.InReplyTo, " from ", domain)
 
-	ping, _, err := tracker.GetPingTracker().TryGetPing(pong.InReplyTo, ev.RoomID, pong.OriginalPing.SenderDomain)
+	ping, _, err := tracker.GetPingTracker().TryGetPing(pong.InReplyTo, ev.RoomID, remoteDomain)
 	if err != nil {
 		log.Error("Error looking up ping this pong is for: ", err)
 		return
@@ -44,6 +46,7 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 	}
 
 	remoteSendDelay := time.Duration(ev.Timestamp-pong.GeneratedMs) * time.Millisecond
+	metrics.RecordPongSendDelay(domain, c.Domain, remoteSendDelay)
 	if remoteSendDelay >= config.RemoteSendDelayThreshold || remoteSendDelay <= 0 {
 		log.Warn(domain, " has a ", remoteSendDelay, " delay in sending events (origin_server_ts vs generated_ms) on pong")
 	}
@@ -51,35 +54,24 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 		remoteSendDelay = 0 // For sanity, even though it's not supposed to be possible
 	}
 
-	// TODO: Export remoteSendDelay (metric DE)
-
 	receiveDelay := (time.Duration(util.NowMillis()-pong.GeneratedMs) * time.Millisecond) - remoteSendDelay
+	metrics.RecordPongReceiveDelay(remoteDomain, domain, receiveDelay)
 	if receiveDelay >= config.ReceiveDelayThreshold || receiveDelay <= 0 {
 		log.Warn("Pong received from ", domain, " has a receive delay of ", receiveDelay)
 	}
 
-	// TODO: Export receiveDelay (metric F)
-
 	processingDelay := time.Duration(pong.GeneratedMs-pong.ReceivedMs) * time.Millisecond
+	metrics.RecordPingProcessDelay(remoteDomain, domain, processingDelay)
 	if processingDelay >= config.ProcessingDelayThreshold || processingDelay < 0 {
 		log.Warn(domain, " has a processing delay of ", processingDelay)
 	}
-
-	// TODO: Export processingDelay (metric G)
-
-	remoteDomain := pong.OriginalPing.SenderDomain
 
 	pingDelay := time.Duration(math.Abs(float64(pong.ReceivedMs)-float64(pong.OriginalPing.GeneratedMs))) * time.Millisecond
 	pongDelay := time.Duration(math.Abs(float64(util.NowMillis())-float64(pong.GeneratedMs))) * time.Millisecond
 	realRtt := time.Duration(math.Abs(float64(util.NowMillis())-float64(pong.OriginalPing.GeneratedMs))) * time.Millisecond
 	rtt := pingDelay + pongDelay
 
-	ourDomain, err := ExtractUserHomeserver(c.UserId)
-	if err != nil {
-		log.Error("Error parsing our own domain: ", err)
-		return
-	}
-	if pong.OriginalPing.SenderDomain == ourDomain {
+	if pong.OriginalPing.SenderDomain == c.Domain {
 		diffAbs := time.Duration(math.Abs(rtt.Seconds()-realRtt.Seconds())) * time.Second
 		if diffAbs >= config.RealRttTolerance {
 			log.Warn("Real RTT has a ", diffAbs, " difference. Using the expected value. Expected ", realRtt, " but got ", rtt)
@@ -88,9 +80,9 @@ func (c *Client) handlePong(log *logrus.Entry, ev *gomatrix.Event) {
 		rtt = realRtt
 	}
 
-	// TODO: Export pingDelay (metric ABC)
-	// TODO: Export pongDelay (metric DEF)
-	// TODO: Export rtt (metric ABCDEF - not G)
+	metrics.RecordPingTime(remoteDomain, domain, pingDelay)
+	metrics.RecordPongTime(remoteDomain, domain, pongDelay)
+	metrics.RecordRtt(remoteDomain, domain, rtt)
 
 	log.Info("Ping delay (", remoteDomain, " -> ", domain, ") is ", pingDelay)
 	log.Info("Pong delay (", domain, " -> ", remoteDomain, ") is ", pongDelay)

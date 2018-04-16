@@ -19,6 +19,33 @@ monitor:
   # be allowed to use the bot.
   allowOtherRooms: false
 
+# The Prometheus metrics configuration
+metrics:
+  # If enabled, Prometheus metrics will be served from /_monitorbot/metrics on the webserver.
+  enabled: false
+
+  # The host to bind on. It is generally recommended to keep this protected from the world.
+  bind: '127.0.0.1'
+
+  # The port to bind metrics on. If this is the same as the webserver port then the bind
+  # configuration from the webserver will be used.
+  port: 9000
+
+# The webserver configuration. This handles both the frontend client and the metrics endpoint.
+webserver:
+  # If enabled, the webserver will serve the fronend app from the root of the domain. If set
+  # to false
+  serveClient: true
+
+  # The host to bind to.
+  bind: '0.0.0.0'
+
+  # The port to listen on. If you're using Docker, make sure to change your port mapping
+  port: 8080
+
+  # If you're running the bot behind a reverse proxy (recommended), set this to true
+  xForwarded: false
+
 # Configuration for the bot's logging
 logging:
   # The directory to store log files to. They will be rotated automatically every day.
