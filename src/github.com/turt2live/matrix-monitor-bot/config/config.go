@@ -28,14 +28,12 @@ type MetricsConfig struct {
 	Enabled    bool   `yaml:"enabled"`
 	Bind       string `yaml:"bind"`
 	Port       int    `yaml:"port"`
-	XForwarded bool   `yaml:"xForwarded"`
 }
 
 type WebserverConfig struct {
 	WithClient bool   `yaml:"serveClient"`
 	Bind       string `yaml:"bind"`
 	Port       int    `yaml:"port"`
-	XForwarded bool   `yaml:"xForwarded"`
 }
 
 type LoggingConfig struct {
@@ -124,13 +122,11 @@ func NewDefaultConfig() *BotConfig {
 			Enabled:    false,
 			Bind:       "127.0.0.1",
 			Port:       9000,
-			XForwarded: false,
 		},
 		Webserver: &WebserverConfig{
 			WithClient: true,
 			Bind:       "0.0.0.0",
 			Port:       8080,
-			XForwarded: false,
 		},
 		Logging: &LoggingConfig{
 			Directory: "logs",

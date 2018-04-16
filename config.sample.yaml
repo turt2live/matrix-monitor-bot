@@ -43,8 +43,6 @@ webserver:
   # The port to listen on. If you're using Docker, make sure to change your port mapping
   port: 8080
 
-  # If you're running the bot behind a reverse proxy (recommended), set this to true
-  xForwarded: false
 
 # Configuration for the bot's logging
 logging:
