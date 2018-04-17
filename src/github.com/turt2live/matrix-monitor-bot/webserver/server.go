@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/turt2live/matrix-monitor-bot/metrics"
 	"time"
+	"strings"
 )
 
 type ComparedDomain struct {
@@ -22,17 +23,28 @@ type ComparedDomain struct {
 }
 
 type CompareTemplateFields struct {
-	SelfDomain string
-	Domains    []ComparedDomain
+	SelfDomain   string
+	Domains      []ComparedDomain
+	RelativePath string // Needed for the layout.html
 }
 
 var mxClient *matrix.Client
+var baseHref string
 
 func InitServer(mux *http.ServeMux, client *matrix.Client) {
 	mxClient = client
 
 	fs := http.FileServer(http.Dir(config.Runtime.WebContentDir))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	prefix := config.Get().Webserver.RelativePath
+	if !strings.HasSuffix(prefix, "/") {
+		prefix = prefix + "/"
+	}
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+	baseHref = prefix
+	prefix = prefix + "static/"
+	mux.Handle(prefix, http.StripPrefix(prefix, fs))
 
 	mux.HandleFunc("/", serveCompare)
 }
@@ -42,8 +54,9 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 	file := path.Join(config.Runtime.WebContentDir, "compare.html")
 
 	fields := CompareTemplateFields{
-		SelfDomain: config.Get().Webserver.DefaultCompareDomain,
-		Domains:    make([]ComparedDomain, 0),
+		SelfDomain:   config.Get().Webserver.DefaultCompareDomain,
+		Domains:      make([]ComparedDomain, 0),
+		RelativePath: baseHref,
 	}
 
 	if fields.SelfDomain == "" {

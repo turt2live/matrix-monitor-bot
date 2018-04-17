@@ -1,6 +1,6 @@
 body {
     text-align: center;
-    background: url("/static/img/grey.png") repeat;
+    background: url("img/grey.png") repeat;
     font-family: "Segoe UI", "WeblySleekUISemilight", sans-serif;
 }
 

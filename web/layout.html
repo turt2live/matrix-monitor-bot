@@ -2,8 +2,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="/static/style.css" type="text/css"/>
-    <link rel="stylesheet" href="/static/fonts/stylesheet.css" type="text/css" />
+    <base href="{{.RelativePath}}"/>
+
+    <link rel="stylesheet" href="static/style.css" type="text/css"/>
+    <link rel="stylesheet" href="static/fonts/stylesheet.css" type="text/css"/>
     <title>{{template "title" .}}</title>
 </head>
 <body lang="en">

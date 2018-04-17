@@ -35,6 +35,7 @@ type WebserverConfig struct {
 	WithClient              bool     `yaml:"serveClient"`
 	Bind                    string   `yaml:"bind"`
 	Port                    int      `yaml:"port"`
+	RelativePath            string   `yaml:"relativePath"`
 	DefaultCompareDomain    string   `yaml:"defaultCompareDomain"`
 	DefaultCompareToDomains []string `yaml:"compareDefaultDomains,flow"`
 }
@@ -130,6 +131,7 @@ func NewDefaultConfig() *BotConfig {
 			WithClient:              true,
 			Bind:                    "0.0.0.0",
 			Port:                    8080,
+			RelativePath:            "/",
 			DefaultCompareDomain:    "",
 			DefaultCompareToDomains: []string{"matrix.org", "t2bot.io"},
 		},

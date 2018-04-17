@@ -43,6 +43,10 @@ webserver:
   # The port to listen on. If you're using Docker, make sure to change your port mapping
   port: 8080
 
+  # The path to serve /static from. If not specified, the default of "/" will be used to
+  # indicate that all /static content is served from the root.
+  relativePath: "/"
+
   # The default domain to use when presenting a compare page. For example, this is the domain
   # that will be advertised on the home page.
   #defaultCompareDomain: "t2bot.io"
