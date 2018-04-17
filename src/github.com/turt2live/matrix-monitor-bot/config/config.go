@@ -133,7 +133,7 @@ func NewDefaultConfig() *BotConfig {
 			Port:                    8080,
 			RelativePath:            "/",
 			DefaultCompareDomain:    "",
-			DefaultCompareToDomains: []string{"matrix.org", "t2bot.io"},
+			DefaultCompareToDomains: make([]string, 0),
 		},
 		Logging: &LoggingConfig{
 			Directory: "logs",
