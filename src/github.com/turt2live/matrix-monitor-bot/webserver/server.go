@@ -11,6 +11,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/metrics"
 	"time"
 	"strings"
+	"sort"
 )
 
 type ComparedDomain struct {
@@ -66,6 +67,7 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 	domainsToUse := config.Get().Webserver.DefaultCompareToDomains
 	if len(domainsToUse) == 0 {
 		domainsToUse = metrics.ListDomainsWithSendTimes(mxClient.Domain)
+		sort.Strings(domainsToUse)
 	}
 
 	for _, domain := range domainsToUse {
