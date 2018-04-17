@@ -13,4 +13,4 @@ const MissedPingTimeout = 5 * time.Minute
 const PongTimeout = 1 * time.Minute
 const PingTtl = 10 * time.Minute
 const RealRttTolerance = 10 * time.Millisecond
-
+const WebWarnStatusThreshold = 1500 * time.Millisecond

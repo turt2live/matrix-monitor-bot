@@ -9,12 +9,16 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/matrix"
 	"fmt"
 	"github.com/turt2live/matrix-monitor-bot/metrics"
+	"time"
 )
 
 type ComparedDomain struct {
 	Domain      string
 	SendTime    string
 	ReceiveTime string
+	AverageTime string
+	Status      string
+	Description string
 }
 
 type CompareTemplateFields struct {
@@ -52,10 +56,24 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, domain := range domainsToUse {
+		sendTime := metrics.CalculateSendTime(fields.SelfDomain, domain).Truncate(time.Millisecond)
+		receiveTime := metrics.CalculateSendTime(domain, fields.SelfDomain).Truncate(time.Millisecond)
+		avgTime := (time.Duration((sendTime.Nanoseconds()+receiveTime.Nanoseconds())/2.0) * time.Nanosecond).Truncate(time.Millisecond)
+		description := fmt.Sprint(avgTime)
+		status := "ok"
+		if avgTime == 0 {
+			status = "danger"
+			description = "offline"
+		} else if avgTime > config.WebWarnStatusThreshold {
+			status = "warn"
+		}
 		fields.Domains = append(fields.Domains, ComparedDomain{
 			Domain:      domain,
-			SendTime:    fmt.Sprint(metrics.CalculateSendTime(fields.SelfDomain, domain)),
-			ReceiveTime: fmt.Sprint(metrics.CalculateSendTime(domain, fields.SelfDomain)),
+			SendTime:    fmt.Sprint(sendTime),
+			ReceiveTime: fmt.Sprint(receiveTime),
+			AverageTime: fmt.Sprint(avgTime),
+			Status:      status,
+			Description: description,
 		})
 	}
 

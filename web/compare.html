@@ -2,36 +2,25 @@
 
 {{define "body"}}
 <h1>{{.SelfDomain}}</h1>
-<table>
-    <thead>
-    <tr>
-        <th>Homeserver</th>
-        <th>Send</th>
-        <th>Receive</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{range .Domains}}
-    <tr>
-        <td>{{.Domain}}</td>
-
-    {{if eq .SendTime "-1ns"}}
-        <td>N / A</td>
-    {{else}}
-        <td>{{.SendTime}}</td>
-    {{end}}
-
-    {{if eq .ReceiveTime "-1ns"}}
-        <td>N / A</td>
-    {{else}}
-        <td>{{.ReceiveTime}}</td>
-    {{end}}
-    </tr>
-    {{end}}
-    </tbody>
-</table>
+{{range .Domains}}
+<div class="circle {{.Status}}" id="{{.Domain}}">
+    <span class="domain fit">{{.Domain}}</span>
+    <span class="time">{{.Description}}</span>
+{{if ne .Status "danger"}}
+    <span class="tooltip">
+        <b>{{.Domain}}</b><br/>
+        Send: {{.SendTime}}<br/>
+        Receive: {{.ReceiveTime}}
+    </span>
+{{else}}
+    <span class="tooltip">
+        <b>{{.Domain}}</b><br/>
+        No stats available
+    </span>
+{{end}}
+</div>
+{{end}}
 <p class="help">
-    Send = Time to go from {{.SelfDomain}} to the listed homeserver<br/>
-    Receive = Time to go from the listed homeserver to {{.SelfDomain}}
+    The times shown are an average of the send and receive times. Hover over a server for more information.
 </p>
 {{end}}
