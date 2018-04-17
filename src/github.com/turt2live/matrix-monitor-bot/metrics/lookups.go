@@ -5,6 +5,7 @@ import (
 	"sync"
 	"github.com/patrickmn/go-cache"
 	"strings"
+	"github.com/turt2live/matrix-monitor-bot/config"
 )
 
 var sendTimesMap = &sync.Map{} // domain_key: Cache
@@ -35,7 +36,7 @@ func RecordSendTime(fromDomain string, toDomain string, duration time.Duration, 
 	domainKey := fromDomain + " TO " + toDomain
 	i, ok := sendTimesMap.Load(domainKey)
 	if !ok {
-		i = cache.New(5*time.Minute, 5*time.Minute)
+		i = cache.New(config.WebAverageInterval, config.WebAverageInterval)
 		sendTimesMap.Store(domainKey, i)
 	}
 
