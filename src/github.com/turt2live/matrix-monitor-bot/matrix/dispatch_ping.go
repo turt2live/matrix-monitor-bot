@@ -7,30 +7,15 @@ import (
 	"encoding/json"
 	"github.com/turt2live/matrix-monitor-bot/events"
 	"github.com/turt2live/matrix-monitor-bot/tracker"
+	"github.com/turt2live/matrix-monitor-bot/metrics"
+	"time"
 )
 
-type RoomPing struct {
-	Ping             *events.PingInfo
-	EventId          string
-	ExpectingServers []string
-}
-
-type DispatchedPing struct {
-	Rooms map[string]RoomPing
-}
-
-func (c *Client) DispatchPing() (*DispatchedPing, error) {
-	domain, err := ExtractUserHomeserver(c.UserId)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) DispatchPing() (error) {
 	rooms, err := c.mxClient.JoinedRooms()
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	dispatchResults := &DispatchedPing{Rooms: make(map[string]RoomPing)}
 
 	var aggregateErr error
 	for _, roomId := range rooms.JoinedRooms {
@@ -47,13 +32,14 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 
 		ping := events.PingContent{
 			Msgtype:      "m.text",
-			Body:         "Ping from " + domain,
+			Body:         "Ping from " + c.Domain,
 			DisplayHints: events.DisplayHints{Hints: [][]string{{"io.t2bot.monitor.ping"}, {"m.text"}}},
-			TextBody:     events.TextBody{Body: "Ping from " + domain},
+			TextBody:     events.TextBody{Body: "Ping from " + c.Domain},
 			PingInfo: events.PingInfo{
-				Version:       1,
-				GeneratedMs:   util.NowMillis(),
-				SenderDomain:  domain,
+				Version:      2,
+				GeneratedMs:  util.NowMillis(),
+				SenderDomain: c.Domain,
+				Tree:         tracker.CalculateRemoteTree(c.Domain, roomId),
 			},
 		}
 
@@ -63,20 +49,11 @@ func (c *Client) DispatchPing() (*DispatchedPing, error) {
 			aggregateErr = multierror.Append(aggregateErr, err)
 			continue
 		}
+		metrics.RecordPingSendDelay(c.Domain, time.Duration(util.NowMillis()-ping.PingInfo.GeneratedMs)*time.Millisecond)
 		logrus.Info("Ping in ", roomId, " is event ", evt.EventID)
-
-		err = tracker.GetPingTracker().StorePing(evt.EventID, roomId, &ping.PingInfo)
-		if err != nil {
-			logrus.Error("Error storing ping: ", err)
-		}
-		dispatchResults.Rooms[roomId] = RoomPing{
-			Ping:             &ping.PingInfo,
-			EventId:          evt.EventID,
-			ExpectingServers: expectingReplyFrom,
-		}
 	}
 
-	return dispatchResults, aggregateErr
+	return aggregateErr
 }
 
 func (c *Client) GetMonitoredDomainsInRoom(roomId string) ([]string, error) {

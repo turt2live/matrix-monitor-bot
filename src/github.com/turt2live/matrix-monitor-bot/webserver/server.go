@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"path"
 	"github.com/turt2live/matrix-monitor-bot/matrix"
-	"fmt"
-	"github.com/turt2live/matrix-monitor-bot/metrics"
-	"time"
 	"strings"
 	"sort"
+	"github.com/turt2live/matrix-monitor-bot/tracker"
+	"fmt"
+	"time"
 )
 
 type ComparedDomain struct {
@@ -19,7 +19,9 @@ type ComparedDomain struct {
 	SendTime    string
 	ReceiveTime string
 	AverageTime string
-	Status      string
+	HasSend     bool
+	HasReceive  bool
+	Status      string // TODO: Replace with the HasSend/HasReceive and future IsOnline
 	Description string
 }
 
@@ -64,19 +66,33 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		fields.SelfDomain = mxClient.Domain
 	}
 
+	us := tracker.GetDomain(mxClient.Domain)
 	domainsToUse := config.Get().Webserver.DefaultCompareToDomains
 	if len(domainsToUse) == 0 {
-		domainsToUse = metrics.ListDomainsWithSendTimes(mxClient.Domain)
+		domainsToUse = tracker.GetDomainsExcept(mxClient.Domain)
+
+		for _, r := range us.GetRemotes() {
+			exists := false
+			for _, e := range domainsToUse {
+				if e == r {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				domainsToUse = append(domainsToUse, r)
+			}
+		}
+
 		sort.Strings(domainsToUse)
 	}
 
 	for _, domain := range domainsToUse {
-		sendTime := metrics.CalculateSendTime(fields.SelfDomain, domain).Truncate(time.Millisecond)
-		receiveTime := metrics.CalculateSendTime(domain, fields.SelfDomain).Truncate(time.Millisecond)
-		avgTime := (time.Duration((sendTime.Nanoseconds()+receiveTime.Nanoseconds())/2.0) * time.Nanosecond).Truncate(time.Millisecond)
+		remote := us.CompareTo(domain)
+		avgTime := (time.Duration((remote.Send.Seconds()+remote.Receive.Seconds())/2) * time.Second).Truncate(time.Millisecond)
 		description := fmt.Sprint(avgTime)
 		status := "ok"
-		if avgTime == 0 {
+		if !remote.HasSend && !remote.HasReceive { // TODO: Status for half-broken
 			status = "danger"
 			description = "offline"
 		} else if avgTime > config.WebWarnStatusThreshold {
@@ -84,8 +100,10 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		}
 		fields.Domains = append(fields.Domains, ComparedDomain{
 			Domain:      domain,
-			SendTime:    fmt.Sprint(sendTime),
-			ReceiveTime: fmt.Sprint(receiveTime),
+			SendTime:    fmt.Sprint(remote.Send.Truncate(time.Millisecond)),
+			ReceiveTime: fmt.Sprint(remote.Receive.Truncate(time.Millisecond)),
+			HasSend:     remote.HasSend,
+			HasReceive:  remote.HasReceive,
 			AverageTime: fmt.Sprint(avgTime),
 			Status:      status,
 			Description: description,

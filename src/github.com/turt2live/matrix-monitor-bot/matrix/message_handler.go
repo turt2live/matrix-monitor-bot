@@ -25,10 +25,5 @@ func (c *Client) handleMessage(ev *gomatrix.Event) {
 		return
 	}
 
-	if ev.Content["io.t2bot.monitor.pong"] != nil {
-		c.handlePong(log, ev)
-		return
-	}
-
 	log.Warn("Unexpected event - is someone talking in the monitor room?")
 }

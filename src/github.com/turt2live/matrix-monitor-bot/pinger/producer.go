@@ -42,7 +42,7 @@ func (p *Producer) Start() {
 
 func doPing(now time.Time, p *Producer) {
 	logrus.Info("Dispatching the ping for ", now)
-	_, err := p.client.DispatchPing()
+	err := p.client.DispatchPing()
 	if err != nil {
 		logrus.Error("Error producing ping: ", err)
 	}
