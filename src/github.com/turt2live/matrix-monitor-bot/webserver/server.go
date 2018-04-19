@@ -92,10 +92,10 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		avgTime := (time.Duration((remote.Send.Nanoseconds()+remote.Receive.Nanoseconds())/2) * time.Nanosecond).Truncate(time.Millisecond)
 		description := fmt.Sprint(avgTime)
 		status := "ok"
-		if !remote.HasSend && !remote.HasReceive { // TODO: Status for half-broken
+		if !remote.HasSend && !remote.HasReceive {
 			status = "danger"
 			description = "offline"
-		} else if avgTime > config.WebWarnStatusThreshold {
+		} else if avgTime > config.WebWarnStatusThreshold || !remote.HasSend || !remote.HasReceive {
 			status = "warn"
 		}
 		fields.Domains = append(fields.Domains, ComparedDomain{

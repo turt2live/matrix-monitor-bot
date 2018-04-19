@@ -2,24 +2,37 @@
 
 {{define "body"}}
 <h1>{{.SelfDomain}}</h1>
+<div class="circle-container">
 {{range .Domains}}
-<div class="circle {{.Status}}" id="{{.Domain}}">
-    <span class="domain fit">{{.Domain}}</span>
-    <span class="time">{{.Description}}</span>
-{{if ne .Status "danger"}}
-    <span class="tooltip">
+    <div class="circle {{.Status}}" id="{{.Domain}}">
+        <span class="domain fit">{{.Domain}}</span>
+        <span class="time">{{.Description}}</span>
+    {{if ne .Status "danger"}}
+        <span class="tooltip">
         <b>{{.Domain}}</b><br/>
-        Send: {{.SendTime}}<br/>
-        Receive: {{.ReceiveTime}}
+
+        {{if .HasSend}}
+            Send: {{.SendTime}}
+        {{else}}
+            Send: <span class="text-danger">offline</span>
+        {{end}}
+            <br/>
+
+        {{if .HasReceive}}
+            Receive: {{.ReceiveTime}}
+        {{else}}
+            Receive: <span class="text-danger">offline</span>
+        {{end}}
     </span>
-{{else}}
-    <span class="tooltip">
+    {{else}}
+        <span class="tooltip">
         <b>{{.Domain}}</b><br/>
         No stats available
     </span>
+    {{end}}
+    </div>
 {{end}}
 </div>
-{{end}}
 <p class="help">
     The times shown are an average of the send and receive times. Hover over a server for more information.
 </p>
