@@ -69,11 +69,11 @@ func (d *Domain) CompareTo(other string) DomainTimings {
 	remote := d.GetRemote(other)
 	usRemote := otherDomain.GetRemote(d.name)
 
-	// Calculate the send times first (us -> them)
+	// Calculate the send times (them -> us)
 	sendTimeTotal := int64(0)
 	sendTimeCount := 0
-	for _, roomId := range remote.GetRooms() {
-		room := remote.GetRoom(roomId)
+	for _, roomId := range usRemote.GetRooms() {
+		room := usRemote.GetRoom(roomId)
 
 		for _, ping := range room.GetPings() {
 			sendTimeCount++
@@ -81,11 +81,11 @@ func (d *Domain) CompareTo(other string) DomainTimings {
 		}
 	}
 
-	// Calculate the receive times (them -> us)
+	// Calculate the receive times (us -> them)
 	receiveTimeTotal := int64(0)
 	receiveTimeCount := 0
-	for _, roomId := range usRemote.GetRooms() {
-		room := usRemote.GetRoom(roomId)
+	for _, roomId := range remote.GetRooms() {
+		room := remote.GetRoom(roomId)
 
 		for _, ping := range room.GetPings() {
 			receiveTimeCount++
