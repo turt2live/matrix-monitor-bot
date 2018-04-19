@@ -89,7 +89,7 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 
 	for _, domain := range domainsToUse {
 		remote := us.CompareTo(domain)
-		avgTime := (time.Duration((remote.Send.Seconds()+remote.Receive.Seconds())/2) * time.Second).Truncate(time.Millisecond)
+		avgTime := (time.Duration((remote.Send.Nanoseconds()+remote.Receive.Nanoseconds())/2) * time.Nanosecond).Truncate(time.Millisecond)
 		description := fmt.Sprint(avgTime)
 		status := "ok"
 		if !remote.HasSend && !remote.HasReceive { // TODO: Status for half-broken
