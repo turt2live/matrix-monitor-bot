@@ -5,8 +5,84 @@ body {
 }
 
 .circle-container {
-    width: 80vw;
     margin: auto;
+}
+
+.tile-container {
+    position: relative;
+    margin: auto;
+    padding-top: 20px;
+}
+
+.card {
+    position: relative;
+    display: inline-block;
+    width: 80vw;
+    max-width: 800px;
+    margin-top: 4vh;
+    padding: 0 15px 15px;
+    background-color: #fff;
+    border-top: 5px solid #4aa3ff;
+    box-shadow: 0 2px 6px hsla(0, 0%, 0%, 0.2);
+}
+
+.card.ok {
+    border-color: #008000;
+}
+
+.card.warn {
+    border-color: #ffa500;
+}
+
+.card.danger {
+    border-color: #ff0000;
+}
+
+.tile {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+    height: 30px;
+    padding: 5px;
+    margin: 0 20px 0;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.tile .indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 10px;
+    margin-right: 5px;
+}
+
+.tile .indicator.ok {
+    box-shadow: #008000dd 0 0 13px;
+    background-color: #008000;
+}
+
+.tile .indicator.warn {
+    box-shadow: #ffa500dd 0 0 13px;
+    background-color: #ffa500;
+}
+
+.tile .indicator.danger {
+    box-shadow: #ff0000dd 0 0 13px;
+    background-color: #ff0000;
+}
+
+.tile .domain {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tile .time {
+    position: relative;
+    float: right;
+    color: #CCC;
+    padding-bottom: 2px;
 }
 
 .circle {
@@ -95,8 +171,8 @@ body {
     visibility: visible;
 }
 
-.help {
-    font-size: 12px;
+.tile .time:hover .tooltip {
+    visibility: visible;
 }
 
 .attribution {

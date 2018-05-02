@@ -38,6 +38,7 @@ type WebserverConfig struct {
 	RelativePath            string   `yaml:"relativePath"`
 	DefaultCompareDomain    string   `yaml:"defaultCompareDomain"`
 	DefaultCompareToDomains []string `yaml:"compareDefaultDomains,flow"`
+	FeaturedCompareDomains  []string `yaml:"featuredCompareDomains,flow"`
 }
 
 type LoggingConfig struct {
@@ -134,6 +135,7 @@ func NewDefaultConfig() *BotConfig {
 			RelativePath:            "/",
 			DefaultCompareDomain:    "",
 			DefaultCompareToDomains: make([]string, 0),
+			FeaturedCompareDomains:  make([]string, 0),
 		},
 		Logging: &LoggingConfig{
 			Directory: "logs",

@@ -55,6 +55,10 @@ webserver:
   # domains for which stats are available will be used as the default.
   compareDefaultDomains: ["matrix.org", "t2bot.io"]
 
+  # The domains to feature more prominently on the compare page. This is optional and defaults
+  # to featuring no domains.
+  featuredCompareDomains: ["matrix.org"]
+
 # Configuration for the bot's logging
 logging:
   # The directory to store log files to. They will be rotated automatically every day.

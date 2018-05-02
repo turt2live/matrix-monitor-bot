@@ -12,6 +12,7 @@ import (
 	"github.com/turt2live/matrix-monitor-bot/tracker"
 	"fmt"
 	"time"
+	"github.com/turt2live/matrix-monitor-bot/util"
 )
 
 type ComparedDomain struct {
@@ -26,9 +27,10 @@ type ComparedDomain struct {
 }
 
 type CompareTemplateFields struct {
-	SelfDomain   string
-	Domains      []ComparedDomain
-	RelativePath string // Needed for the layout.html
+	SelfDomain      string
+	Domains         []ComparedDomain
+	FeaturedDomains []ComparedDomain
+	RelativePath    string // Needed for the layout.html
 }
 
 var mxClient *matrix.Client
@@ -57,9 +59,10 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 	file := path.Join(config.Runtime.WebContentDir, "compare.html")
 
 	fields := CompareTemplateFields{
-		SelfDomain:   config.Get().Webserver.DefaultCompareDomain,
-		Domains:      make([]ComparedDomain, 0),
-		RelativePath: baseHref,
+		SelfDomain:      config.Get().Webserver.DefaultCompareDomain,
+		Domains:         make([]ComparedDomain, 0),
+		FeaturedDomains: make([]ComparedDomain, 0),
+		RelativePath:    baseHref,
 	}
 
 	if fields.SelfDomain == "" {
@@ -67,7 +70,8 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 	}
 
 	us := tracker.GetDomain(mxClient.Domain)
-	domainsToUse := config.Get().Webserver.DefaultCompareToDomains
+	domainsToUse := make([]string, 0)
+	domainsToUse = append(domainsToUse, config.Get().Webserver.DefaultCompareToDomains...)
 	if len(domainsToUse) == 0 {
 		domainsToUse = tracker.GetDomainsExcept(mxClient.Domain)
 
@@ -86,8 +90,15 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 
 		sort.Strings(domainsToUse)
 	}
+	domainsToUse = append(domainsToUse, config.Get().Webserver.FeaturedCompareDomains...)
 
+	handledDomains := make(map[string]bool)
 	for _, domain := range domainsToUse {
+		if handledDomains[domain] {
+			continue
+		}
+		handledDomains[domain] = true
+
 		remote := us.CompareTo(domain)
 		avgTime := (time.Duration((remote.Send.Nanoseconds()+remote.Receive.Nanoseconds())/2) * time.Nanosecond).Truncate(time.Millisecond)
 		description := fmt.Sprint(avgTime)
@@ -98,7 +109,7 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		} else if avgTime > config.WebWarnStatusThreshold || !remote.HasSend || !remote.HasReceive {
 			status = "warn"
 		}
-		fields.Domains = append(fields.Domains, ComparedDomain{
+		compDomain := ComparedDomain{
 			Domain:      domain,
 			SendTime:    fmt.Sprint(remote.Send.Truncate(time.Millisecond)),
 			ReceiveTime: fmt.Sprint(remote.Receive.Truncate(time.Millisecond)),
@@ -107,7 +118,13 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 			AverageTime: fmt.Sprint(avgTime),
 			Status:      status,
 			Description: description,
-		})
+		}
+
+		if util.StrArrayContains(config.Get().Webserver.FeaturedCompareDomains, domain) {
+			fields.FeaturedDomains = append(fields.FeaturedDomains, compDomain)
+		} else {
+			fields.Domains = append(fields.Domains, compDomain)
+		}
 	}
 
 	tmpl, err := template.ParseFiles(layout, file)
