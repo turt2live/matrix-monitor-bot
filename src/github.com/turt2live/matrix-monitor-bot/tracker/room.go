@@ -67,7 +67,7 @@ func (r *Room) recordMetrics(record Record, log *logrus.Entry) {
 	receivingDomain := r.remoteDomain.domain.name
 
 	metrics.RecordPingSendDelay(sourceDomain, remoteSendDelay)
-	if remoteSendDelay >= config.RemoteSendDelayWarnThreshold || remoteSendDelay <= 0 {
+	if remoteSendDelay >= config.RemoteSendDelayWarnThreshold || remoteSendDelay < 0 {
 		log.Warn(sourceDomain, " has a ", remoteSendDelay, " delay in sending events to their homeserver")
 	}
 
