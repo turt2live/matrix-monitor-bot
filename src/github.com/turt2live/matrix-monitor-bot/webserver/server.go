@@ -69,11 +69,11 @@ func serveCompare(w http.ResponseWriter, r *http.Request) {
 		fields.SelfDomain = mxClient.Domain
 	}
 
-	us := tracker.GetDomain(mxClient.Domain)
+	us := tracker.GetDomain(fields.SelfDomain)
 	domainsToUse := make([]string, 0)
 	domainsToUse = append(domainsToUse, config.Get().Webserver.DefaultCompareToDomains...)
 	if len(domainsToUse) == 0 {
-		domainsToUse = tracker.GetDomainsExcept(mxClient.Domain)
+		domainsToUse = tracker.GetDomainsExcept(fields.SelfDomain)
 
 		for _, r := range us.GetRemotes() {
 			exists := false
